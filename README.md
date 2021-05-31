@@ -4,7 +4,7 @@ This repository helps:
 * Someone who is looking for a **quick** transformer-based classifier with low computation budget. 
 - [x] Simple data format 
 - [x] Simple environment setup
-- [x] quick identifiability 
+- [x] Quick identifiability 
 * Someone who wants to **tweak** the size of key vector and value vector, independently.
 * Someone who wants to make their analysis of attention weights more **reliable**. How? see below...
 
@@ -15,6 +15,8 @@ _As shown in our work (experimentally and theoretically)- for a given input X, a
 **Idea**:
 * decrease the size of key vector,
 * increase the size of value vector and perform the addition of head outputs.
+
+*Our paper:* _R. Bhardwah, ‪N. Majumder, S. Poria, E. Hovy. Transformers Can Be More Identifiable Than We Know. ACL 2021._
 
 ### Simple python setup
 * I have tried on Python 3.9.2, 
@@ -73,3 +75,8 @@ declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 | True  | <img src="https://latex.codecogs.com/svg.latex?\small&space;\frac{\text{embedim}}{\text{nhead}}" title="\small \frac{\text{embedim}}{\text{nhead}}" />|
 | False  | embedim |
 
+## Citation
+
+_R. Bhardwah, ‪N. Majumder, S. Poria, E. Hovy. Transformers Can Be More Identifiable Than We Know. ACL 2021._
+
+***Note***: Don't forget to cite our paper if you find this repository useful :) .
