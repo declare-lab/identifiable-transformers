@@ -1,9 +1,12 @@
-# Making Transformers Identifiable 
+# Simply Making Transformers Identifiable 
 
-This repository helps someone:
-* who is looking for a **quick** transformer-based classifier with low computation budget.
-* wants to **tweak** the size of key vector and value vector, independently.
-* wants to make their analysis of attention weights more **reliable**. How? see below...
+This repository helps:
+* Someone who is looking for a **quick** transformer-based classifier with low computation budget. 
+- [x] Simple data format, 
+- [x] Simple environment setup
+- [x] quick identifiability 
+* Someone who wants to **tweak** the size of key vector and value vector, independently.
+* Someone who wants to make their analysis of attention weights more **reliable**. How? see below...
 
 ### How to make your attention weights more reliable?
 
