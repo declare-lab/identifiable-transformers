@@ -39,16 +39,18 @@ BTW, you can try to run on Torchtext provided [datasets](https://pytorch.org/tex
 ```console
 declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 ```
-can replace _ag_news_ with _imdb_ for IMDb, _sogou_ for SogouNews, _yelp_p_ for YelpReviewPolarity
+For fun, try to replace _ag_news_ with _imdb_ for IMDb, _sogou_ for SogouNews, _yelp_p_ for YelpReviewPolarity
 , _yelp_f_ for YelpReviewFull, _amazon_p_ for AmazonReviewPolarity, _amazon_f_ for AmazonReviewFull, _yahoo_ for YahooAnswers, _dbpedia_ for DBpedia.
 
 #### Want to customize it for more identifiability?
-Keep low k-dim and/or switch head addition by concat = False. Feel free to analyze attention weights for inputs with lengths up to embedding dim.
+Keep low k-dim and/or switch head addition by concat = False. Feel free to analyze attention weights for inputs with lengths up to embedding dim that is specified by embedim arguments while running the command below. 
 
 ```console
-declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
+declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news -embedim 256
 ```
-***Note***: Lower k-dim may/may not impact the classification accuracy, please keep the possible trade-off in the bucket during experiments.
+***Note***: 
+* Lower k-dim may/may not impact the classification accuracy, please keep the possible trade-off in the bucket during experiments.
+* It is recommended to keep embedim close to maximum text length (see max_text_len parameter below). However, make sure you do not overparametrize the model to make attention weights identifiable for large text lengths.  
 
 #### Tweak classifier parameters
 * batch: training batch size (default = 64).
