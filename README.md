@@ -79,4 +79,4 @@ declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 
 _R. Bhardwah, ‪N. Majumder, S. Poria, E. Hovy. Transformers Can Be More Identifiable Than We Know. ACL 2021._
 
-***Note***: Don't forget to cite our paper if you find this repository useful :) .
+***Note***: Please cite our paper if you find this repository useful.
