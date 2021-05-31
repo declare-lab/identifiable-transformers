@@ -2,7 +2,7 @@
 
 This repository helps:
 * Someone who is looking for a **quick** transformer-based classifier with low computation budget. 
-- [x] Simple data format, 
+- [x] Simple data format 
 - [x] Simple environment setup
 - [x] quick identifiability 
 * Someone who wants to **tweak** the size of key vector and value vector, independently.
