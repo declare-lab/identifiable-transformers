@@ -15,7 +15,7 @@ _As shown in our work (experimentally and theoretically)- for a given input X, a
 
 ### Simple python setup
 * I have tried on Python 3.9.2, 
-(since the dependencies are kept as low as possible should be easy to run/adapt on other Python version.)
+(since the dependencies are kept as low as possible, should be easy to run/adapt on other Python versions.)
 * PyTorch version 1.8.1
 * Torchtext version 0.9.1
 * Pandas version 0.9.1
