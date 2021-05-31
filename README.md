@@ -10,7 +10,7 @@ This repository helps:
 
 ### How to make your attention weights more reliable?
 
-_As shown in our work (experimentally and theoretically)- for a given input X, a set of attention weights A, and output transformer prediction probabilities Y, if we can find another set of attention (architecture generatable) weights A* satisfying X-Y pair, analysis performed over A is prone to be inaccuracte._ 
+_As shown in our work (experimentally and theoretically)- for a given input X, a set of attention weights A, and output transformer prediction probabilities Y, if we can find another set of attention (architecture generatable) weights A* satisfying X-Y pair, analysis performed over A is prone to be inaccurate._ 
 
 **Idea**:
 * decrease the size of key vector,
