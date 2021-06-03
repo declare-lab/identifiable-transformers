@@ -44,7 +44,7 @@ BTW, you can try to run on Torchtext provided [datasets](https://pytorch.org/tex
 ```console
 declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 ```
-For fun, try to replace _ag_news_ with _imdb_ for IMDb, _sogou_ for SogouNews, _yelp_p_ for YelpReviewPolarity
+For quick experiments on variety of text classification datasets, replace _ag_news_ with _imdb_ for IMDb, _sogou_ for SogouNews, _yelp_p_ for YelpReviewPolarity
 , _yelp_f_ for YelpReviewFull, _amazon_p_ for AmazonReviewPolarity, _amazon_f_ for AmazonReviewFull, _yahoo_ for YahooAnswers, _dbpedia_ for DBpedia.
 
 #### Want to customize it for more identifiability?
