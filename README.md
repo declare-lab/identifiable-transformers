@@ -16,7 +16,7 @@ _As shown in our work (experimentally and theoretically)- for a given input X, a
 * decrease the size of key vector,
 * increase the size of value vector and perform the addition of head outputs.
 
-*Our paper:* _R. Bhardwaj, ‪N. Majumder, S. Poria, E. Hovy. More Identifiable yet Equally Performant Transformers for Text Classification. ACL 2021._
+*Our paper:* _R. Bhardwaj, ‪N. Majumder, S. Poria, E. Hovy. More Identifiable yet Equally Performant Transformers for Text Classification. ACL 2021._ (the latest version is available [here](https://arxiv.org/abs/2106.01269).)
 
 ### Simple python setup
 * I have tried on Python 3.9.2, 
@@ -79,4 +79,4 @@ declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 
 _R. Bhardwaj, ‪N. Majumder, S. Poria, E. Hovy. More Identifiable yet Equally Performant Transformers for Text Classification. ACL 2021._
 
-***Note***: Please cite our paper if you find this repository useful.
+***Note***: Please cite our paper if you find this repository useful. The latest version is available [here](https://arxiv.org/abs/2106.01269).
