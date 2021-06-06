@@ -1,4 +1,4 @@
-# Transformer-based Text Classifier: Simple yet Identifiable
+# More Identifiable yet Equally Performant Transformers for Text Classification
 
 This repository helps:
 * Someone who is looking for a **quick** transformer-based classifier with low computation budget. 
