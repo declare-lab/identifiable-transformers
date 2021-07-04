@@ -22,6 +22,7 @@ def multi_head_attention_forward(query: Tensor,
                                  out_proj_weight: Tensor,
                                  out_proj_bias: Tensor,
                                  training: bool = True,
+                                 key_padding_mask: Optional[Tensor] = None,
                                  need_weights: bool = True,
                                  q_proj_weight: Optional[Tensor] = None,
                                  k_proj_weight: Optional[Tensor] = None,
@@ -85,7 +86,6 @@ def multi_head_attention_forward(query: Tensor,
     attn_output = torch.bmm(attn_output_weights, v)
 
     assert list(attn_output.size()) == [bsz * num_heads, tgt_len, head_dim]
-
 
     if concat_head_output == True:
         #concat head outputs

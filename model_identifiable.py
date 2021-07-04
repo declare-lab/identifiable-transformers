@@ -55,7 +55,7 @@ class MultiheadAttention(nn.MultiheadAttention):
         self._reset_parameters()
 
 
-    def forward(self, query, key, value, text_len, need_weights=False):
+    def forward(self, query, key, value, key_padding_mask, need_weights=False):
         return M.multi_head_attention_forward(
             query=query, 
             key=key, 
@@ -69,6 +69,7 @@ class MultiheadAttention(nn.MultiheadAttention):
             out_proj_weight=self.out_proj.weight, 
             out_proj_bias=self.out_proj.bias,
             training=self.training,
+            key_padding_mask = key_padding_mask,
             need_weights=need_weights,
             q_proj_weight=self.q_proj_weight, 
             k_proj_weight=self.k_proj_weight,
@@ -96,32 +97,33 @@ class TransformerEncoderLayer(nn.TransformerEncoderLayer):
         self.dropout2 = nn.Dropout(dropout)
         self.activation = _get_activation_fn(activation)
         #
-    def forward(self, src: Tensor, text_len, src_mask: Optional[Tensor] = None, src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
-        src2 = self.self_attn(src, src, src, text_len)[0]
-        src = src + self.dropout1(src2)
+    def forward(self, src: Tensor, mask, src_mask: Optional[Tensor] = None, src_key_padding_mask: Optional[Tensor] = None) -> Tensor:
+        src = self.self_attn(query=src, key=src, value=src, key_padding_mask=mask)[0]
+        src = src + self.dropout1(src)
         src = self.norm1(src)
-        src2 = self.linear2(self.dropout(self.activation(self.linear1(src))))
-        src = src + self.dropout2(src2)
+        src = self.linear2(self.dropout(self.activation(self.linear1(src))))
+        src = src + self.dropout2(src)
         src = self.norm2(src)
         return src
 
 
 class Transformer(nn.Module):
     def __init__(self, vocab_size, embedding_dim, n_head, concat_heads, kdim, vdim, max_len, dim_feedforward, output_dim, 
-                dropout, device, pos_emb=False):
+                dropout, device, pos_emb=False, pad_id=0):
         super().__init__()
         self.device = device
-        self.pos_emb = pos_emb
-        self.embedding = nn.Embedding(vocab_size, embedding_dim) #intialize pad_idx position with zeros and keep the gradient zero
+        self.embedding = nn.Embedding(vocab_size, embedding_dim, padding_idx=pad_id) #intialize pad_idx position with zeros and keep the gradient zero
         self.encoder_layer = TransformerEncoderLayer(d_model=embedding_dim, nhead=n_head, concat_heads=concat_heads, kdim=kdim, vdim=vdim, dim_feedforward=dim_feedforward)
         self.fc = nn.Linear(embedding_dim, output_dim)
         self.dropout = nn.Dropout(dropout)
-        self.positional_encoding = nn.Parameter(torch.rand([max_len, embedding_dim], device=device)/max_len)
+        self.pos_emb = pos_emb
+        if self.pos_emb == True:
+            self.max_len = max_len
+            self.positional_encoding = nn.Embedding(max_len, embedding_dim, padding_idx=pad_id)
 
+    def forward(self, mask, text):
 
-    def forward(self, text, text_lengths):
-
-        #[batch x text_length] --> [text_length x batch] (for MHA)
+        #[batch x max_len] --> [max_len x batch] (for MHA)
         text = text.transpose(0,1)
 
         #[max_len x batch] --> [max_len x batch]
@@ -129,14 +131,12 @@ class Transformer(nn.Module):
 
         #comment below if pos emb not required
         if self.pos_emb == True:
-            mask = torch.zeros([text.shape[0],text.shape[1]], device=self.device)
-            for sample in range(text.shape[1]):
-                mask[:text_lengths[sample], sample] = torch.ones([text_lengths[sample]])
-            embedded = embedded + self.positional_encoding[:text.shape[0],None,:]
-            embedded = embedded * mask[:,:,None]
+            pos_tensor = torch.tensor([[p+1 for p in range(self.max_len)] for b in range(mask.shape[0])])
+            pos_encode = self.positional_encoding(pos_tensor)*mask
+            embedded = embedded + pos_encode.transpose(0,1).to(device)
 
-        #[encoder text_length x batch x embedding] --> [text_length x batch x embedding]
-        hidden = self.encoder_layer(src = embedded, text_len = text_lengths)
+        #[max_len x batch x embedding] --> [max_len x batch x embedding]
+        hidden = self.encoder_layer(src=embedded, mask=mask)
         
         #feed-forward classification layer
         out = F.softmax(self.fc(hidden[0,:,:]), dim=-1)

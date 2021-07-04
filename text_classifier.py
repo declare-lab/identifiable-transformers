@@ -25,9 +25,12 @@ parser.add_argument('-embedim', action="store", type=int, default=32)
 parser.add_argument('-batch', action="store", type=int, default=64)
 parser.add_argument('-epochs', action="store", type=int, default=10)
 parser.add_argument('-lr', action="store", type=float, default=0.001)
+parser.add_argument('-dropout', action="store", type=float, default=0.5)
 parser.add_argument('-vocab_size', action="store", type=int, default=100000)
 parser.add_argument('-max_text_len', action="store", type=int, default=512)
 parser.add_argument('-valid_frac', action="store", type=float, default=0.3)
+parser.add_argument('-pos_emb', action="store", type=bool, default=False)
+
 
 config = parser.parse_args()
 print("\n\n->Configurations are:")
@@ -139,36 +142,47 @@ counter = Counter()
 for (label, line) in train_dataset:
     counter.update(tokenizer(line))
 
+MAX_LEN = config.max_text_len
+
 # vocab length is max_size + 2 for special tokens
 max_vocab_size = config.vocab_size
-vocab = torchtext.vocab.Vocab(counter, max_size=max_vocab_size, specials=('<unk>', '<pad>', '<cls>', '<sep>'), specials_first=True)
+vocab = torchtext.vocab.Vocab(counter, max_size=max_vocab_size, specials=('<pad>', '<unk>', '<cls>', '<sep>'), specials_first=True)
 
 # example: text_pipeline('here is the an example') --> [0, 22, 3, 31, 0]
-text_pipeline = lambda x: [vocab[token] for token in tokenizer(x)]
-
-# padding function
-padding_pipeline = lambda x: x[0] + [vocab.stoi['<pad>'] for p in range(x[1] - len(x[0]))]
+tokenize_clip_pipeline = lambda sentence: [vocab[word] for word in tokenizer(sentence)][:MAX_LEN]
 
 # special token append
-special_token_pipeline = lambda x: [[vocab.stoi['<cls>']] + p + [vocab.stoi['<sep>']] for p in x]
+special_token_pipeline = lambda token_list: [vocab.stoi['<cls>']] + token_list + [vocab.stoi['<sep>']]
 
-MAX_LEN = config.max_text_len
+# padding function
+padding_pipeline = lambda token_list: token_list + [vocab.stoi['<pad>'] for p in range(MAX_LEN-len(token_list))]
 
 # dataloader
 def collate_batch(batch):
-    label_list, text_lists, offsets, text_lenghts = [], [], [0], []
+    label_lists, mask_lists, text_lists = [], [], []
     for (_label, _text) in batch:
-         label_list.append(_label)
-         processed_text = text_pipeline(_text)
-         text_lists.append(processed_text)
-    text_lists = special_token_pipeline(text_lists)
-    text_lenghts = [len(token_list) for token_list in text_lists]
-    max_text_len = max(text_lenghts + [MAX_LEN-2])
-    text_lists = [padding_pipeline((token_list, max_text_len)) for token_list in text_lists]
-    text_lenghts = torch.tensor(text_lenghts, dtype=torch.int64)
+
+        #batch list of labels
+        label_lists.append(_label)
+
+        #tokenize text
+        process_text = tokenize_clip_pipeline(_text)
+        process_text = special_token_pipeline(process_text)
+
+        #define mask
+        mask_lists.append([1 for m in range(len(process_text))] + [0 for m in range(MAX_LEN - len(process_text))])
+
+        #pad the token list
+        process_text = padding_pipeline(process_text)
+        text_lists.append(process_text)
+
+    #convert lists into tensors
+    label_lists = torch.tensor(label_lists, dtype=torch.int64)
+    mask_lists = torch.tensor(mask_lists, dtype=torch.int64)
     text_lists = torch.tensor(text_lists, dtype=torch.int64)
-    label_list = torch.tensor(label_list, dtype=torch.int64)
-    return label_list.to(device), text_lists.to(device), text_lenghts.to(device)
+
+    #put the batch on device and return tensors
+    return label_lists.to(device), mask_lists.to(device), text_lists.to(device)
 
 
 '''
@@ -183,19 +197,27 @@ def collate_batch(batch):
 
 
 DIM_FEEDFORWARD_TRX = 256
-DROPOUT = 0.5
+DROPOUT = config.dropout
 
 INPUT_DIM = len(vocab)
 OUTPUT_DIM = len(OUTPUT_LABELS)
 
-print("\nvocab length: {}".format(INPUT_DIM))
+POS_EMB = config.pos_emb
 
-PAD_IDX = vocab.unk_index   #stoi: dict<-string_to_index; PAD_IDX=1
-
-print("\nModel configuration::\n BATCH_SIZE: {}\n N_HEAD: {}\n CONCAT_HEADS: {}\n KDIM: {}\n VDIM: {}\n EMBEDDING_DIM: {}\n MAX_LEN: {}"
-        .format(BATCH_SIZE, N_HEAD, CONCAT_HEADS, KDIM, VDIM, EMBEDDING_DIM, MAX_LEN)
+print("\nModel configuration::\n \
+        BATCH_SIZE: {}\n \
+        N_HEAD: {}\n \
+        CONCAT_HEADS: {}\n \
+        KDIM: {}\n \
+        VDIM: {}\n \
+        EMBEDDING_DIM: {}\n \
+        MAX_LEN: {}\n \
+        VOCAB_LEN: {}\n \
+        POS_EMB: {} \n\n" \
+        .format(BATCH_SIZE, N_HEAD, CONCAT_HEADS, KDIM, VDIM, EMBEDDING_DIM, MAX_LEN, max_vocab_size, POS_EMB)
         )
 
+PAD_IDX = vocab.stoi['<pad>']   #PAD_IDX=0
 
 '''
     initialise model
@@ -213,7 +235,9 @@ model = M.Transformer(
             dim_feedforward=DIM_FEEDFORWARD_TRX,
             output_dim=OUTPUT_DIM, 
             dropout=DROPOUT,
-            device = device
+            device = device,
+            pos_emb = POS_EMB,
+            pad_id = PAD_IDX
             )
 
 model = model.to(device)
@@ -222,42 +246,64 @@ model = model.to(device)
 '''
     Training and evaluation
 '''
+
+#define training module
 def train(dataloader):
     model.train()
     total_acc, total_count = 0, 0
     log_interval = 500
     start_time = time.time()
     #
-    for idx, (label, text, text_lenghts) in enumerate(dataloader):
+    for idx, (label, mask, text) in enumerate(dataloader):
+
+        #flush gradients
         optimizer.zero_grad()
-        predited_label = model(text, text_lenghts)
+
+        #feed inputs to the model
+        predited_label = model(mask, text)
+
+        #calculate the loss
         loss = criterion(predited_label, label)
+
+        #compute gradients
         loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 0.1)
+
+        #gradient step
         optimizer.step()
+
+        #compute metric score 
         total_acc += (predited_label.argmax(1) == label).sum().item()
         total_count += label.size(0)
         if idx % log_interval == 0 and idx > 0:
             elapsed = time.time() - start_time
             print('| epoch {:3d} | {:5d}/{:5d} batches '
-                  '| accuracy {:8.3f}'.format(epoch, idx, len(dataloader),
+                  '| train accuracy {:8.3f}'.format(epoch, idx, len(dataloader),
                                               total_acc/total_count))
             total_acc, total_count = 0, 0
             start_time = time.time()
 
+
+#define evaluation module
 def evaluate(dataloader):
     model.eval()
     total_acc, total_count = 0, 0
-    #
+
+    #disable graph building
     with torch.no_grad():
-        for idx, (label, text, text_lenghts) in enumerate(dataloader):
-            predited_label = model(text, text_lenghts)
+
+        for (label, mask, text) in dataloader:
+
+            #feed input to the model
+            predited_label = model(mask, text)
+
+            #compute loss
             loss = criterion(predited_label, label)
+
+            #compute metric score
             total_acc += (predited_label.argmax(1) == label).sum().item()
             total_count += label.size(0)
     return total_acc/total_count
 
-from torch.utils.data.dataset import random_split
 
 # Hyperparameters
 EPOCHS = config.epochs
@@ -265,9 +311,14 @@ LR = config.lr
 
 criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.AdamW(model.parameters(), lr=LR)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.1)
 total_accu = None
 
+
+'''
+Start training iterations
+'''
+
+#load data in batch
 import time
 
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE,
@@ -277,25 +328,34 @@ valid_dataloader = DataLoader(valid_dataset, batch_size=BATCH_SIZE,
 test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE,
                              shuffle=False, collate_fn=collate_batch)
 
-# training
+#training
+best_val = 0.0
+best_test = 0.0
+best_epoch = 0
 for epoch in range(1, EPOCHS + 1):
-    epoch_start_time = time.time()
-    train(train_dataloader)
-    accu_val = evaluate(valid_dataloader)
-    if total_accu is not None and total_accu > accu_val:
-      scheduler.step()
-    else:
-       total_accu = accu_val
     print('-' * 59)
-    print('| end of epoch {:3d} | time: {:5.2f}s | '
-          'valid accuracy {:8.3f} '.format(epoch,
+
+    epoch_start_time = time.time()
+
+    train(train_dataloader)
+
+    accu_val = evaluate(valid_dataloader)
+
+    print('\n+end of epoch {:3d} | time: {:5.2f}s | '
+          'valid accuracy {:8.3f}]'.format(epoch,
                                            time.time() - epoch_start_time,
                                            accu_val))
-    print('-' * 59)
 
+    accu_test = evaluate(test_dataloader)
 
-print('Checking the results of test dataset.')
-accu_test = evaluate(test_dataloader)
-print('test accuracy {:8.3f}'.format(accu_test))
+    print('+test accuracy {:8.3f}'.format(accu_test))
+
+    if accu_val > best_val:
+        best_val = accu_val
+        best_test = accu_test
+        best_epoch = epoch
+
+print('-' * 59)
+print('Best valid accuracy is {:8.3f} at epoch {} at which test accuracy is {:8.3f}'.format(best_val, best_epoch, best_test))
 
 
