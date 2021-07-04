@@ -273,9 +273,9 @@ import time
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE,
                               shuffle=True, collate_fn=collate_batch)
 valid_dataloader = DataLoader(valid_dataset, batch_size=BATCH_SIZE,
-                              shuffle=True, collate_fn=collate_batch)
+                              shuffle=False, collate_fn=collate_batch)
 test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE,
-                             shuffle=True, collate_fn=collate_batch)
+                             shuffle=False, collate_fn=collate_batch)
 
 # training
 for epoch in range(1, EPOCHS + 1):
