@@ -79,7 +79,7 @@ def multi_head_attention_forward(query: Tensor,
     #[batch size * num_heads, no of tokens, qdim] x [batch size * num_heads, no of tokens, kdim].T -> [batch size * num_head, no of tokens, no of tokens]
     attn_output_weights = torch.bmm(q, k.transpose(1, 2))
 
-    #process mask and convert to bool
+    #mask unwanted attentions from pad tokens
     if key_padding_mask != None:
         mask = key_padding_mask
         mask = mask.repeat(1,tgt_len)
