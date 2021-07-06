@@ -27,7 +27,7 @@ def multi_head_attention_forward(query: Tensor,
                                  q_proj_weight: Optional[Tensor] = None,
                                  k_proj_weight: Optional[Tensor] = None,
                                  v_proj_weight: Optional[Tensor] = None,
-                                 ) -> Tuple[Tensor, Optional[Tensor]]:
+                                 ):
 
     #query is [number of sentence tokens, batch, embedding dim]
     tgt_len, bsz, embed_dim = query.size()
