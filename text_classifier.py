@@ -25,7 +25,7 @@ parser.add_argument('-embedim', action="store", type=int, default=32)
 parser.add_argument('-batch', action="store", type=int, default=64)
 parser.add_argument('-epochs', action="store", type=int, default=10)
 parser.add_argument('-lr', action="store", type=float, default=0.001)
-parser.add_argument('-dropout', action="store", type=float, default=0.5)
+parser.add_argument('-dropout', action="store", type=float, default=0.1)
 parser.add_argument('-vocab_size', action="store", type=int, default=100000)
 parser.add_argument('-max_text_len', action="store", type=int, default=512)
 parser.add_argument('-valid_frac', action="store", type=float, default=0.3)
@@ -213,8 +213,9 @@ print("\nModel configuration::\n \
         EMBEDDING_DIM: {}\n \
         MAX_LEN: {}\n \
         VOCAB_LEN: {}\n \
-        POS_EMB: {} \n\n" \
-        .format(BATCH_SIZE, N_HEAD, CONCAT_HEADS, KDIM, VDIM, EMBEDDING_DIM, MAX_LEN, max_vocab_size, POS_EMB)
+        POS_EMB: {}\n \
+        DROPOUT:{}\n\n" \
+        .format(BATCH_SIZE, N_HEAD, CONCAT_HEADS, KDIM, VDIM, EMBEDDING_DIM, MAX_LEN, max_vocab_size, POS_EMB, DROPOUT)
         )
 
 PAD_IDX = vocab.stoi['<pad>']   #PAD_IDX=0
@@ -235,8 +236,8 @@ model = M.Transformer(
             dim_feedforward=DIM_FEEDFORWARD_TRX,
             output_dim=OUTPUT_DIM, 
             dropout=DROPOUT,
-            device = device,
             pos_emb = POS_EMB,
+            device = device,
             pad_id = PAD_IDX
             )
 

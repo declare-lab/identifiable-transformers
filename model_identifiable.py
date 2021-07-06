@@ -110,7 +110,7 @@ class TransformerEncoderLayer(nn.TransformerEncoderLayer):
 
 class Transformer(nn.Module):
     def __init__(self, vocab_size, embedding_dim, n_head, concat_heads, kdim, vdim, max_len, dim_feedforward, output_dim, 
-                dropout, device, pos_emb, pad_id=0):
+                dropout, device, pos_emb, pad_id):
         super().__init__()
 
         #device cpu/gpu
