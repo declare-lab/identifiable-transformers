@@ -5,7 +5,7 @@ from torch import nn
 from torch import Tensor
 import torch.nn.functional as F
 
-import multi_head_average as M
+import multi_head_attention as M
 
 from typing import Optional
 
