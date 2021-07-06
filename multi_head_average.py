@@ -50,7 +50,10 @@ def multi_head_attention_forward(query: Tensor,
 
     assert in_proj_bias.size()[0] == qh + kh + vh
 
-    '''input transformation'''
+    '''
+    Input transformation
+    : linear(x,w,b) = x*w^T + b
+    '''
 
     #[no of tokens, batch size, embedding dim] -> [no of tokens, batch size, qh]
     q = linear(query, q_proj_weight.transpose(0, 1), in_proj_bias[0: qh])
@@ -65,16 +68,25 @@ def multi_head_attention_forward(query: Tensor,
     q = q * scaling
 
     #[no of tokens, batch size * num_heads, qdim] -> [batch size * num_heads, no of tokens, qdim]
-    q = q.contiguous().view(tgt_len, bsz * num_heads, qh // num_heads).transpose(0, 1)
+    q = q.view(tgt_len, bsz * num_heads, qh // num_heads).transpose(0, 1)
 
     #[no of tokens, batch size * num_heads, kdim] -> [batch size * num_heads, no of tokens, kdim]
-    k = k.contiguous().view(tgt_len, bsz * num_heads, kh // num_heads).transpose(0, 1)
+    k = k.view(tgt_len, bsz * num_heads, kh // num_heads).transpose(0, 1)
 
     #[no of tokens, batch size * num_heads, vdim] -> [batch size * num_heads, no of tokens, vdim]
-    v = v.contiguous().view(tgt_len, bsz * num_heads, head_dim).transpose(0, 1)
+    v = v.view(tgt_len, bsz * num_heads, head_dim).transpose(0, 1)
 
     #[batch size * num_heads, no of tokens, qdim] x [batch size * num_heads, no of tokens, kdim].T -> [batch size * num_head, no of tokens, no of tokens]
     attn_output_weights = torch.bmm(q, k.transpose(1, 2))
+
+    #process mask and convert to bool
+    if key_padding_mask != None:
+        mask = key_padding_mask
+        mask = mask.repeat(1,tgt_len)
+        mask = mask.view(-1,tgt_len,tgt_len)
+        mask = (mask*(mask.transpose(1,2))) == 0
+        mask = mask.repeat(num_heads,1,1)
+        attn_output_weights = attn_output_weights.masked_fill_(mask, -1e10)
 
     assert list(attn_output_weights.size()) == [bsz * num_heads, tgt_len, tgt_len]
 
