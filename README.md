@@ -68,6 +68,8 @@ declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 * test_frac: only for user specified datasets, fraction of test set from the specified data set (default = 0.3).
 * valid_frac: fraction of training samples kept aside for model development (default = 0.3).
 * kdim: dimensions of key (and query) vector (default = 16).
+* pos_emb: True if positional embedding is needed (default = False).
+* dropout: dropout regularization parameter (default = 0.5).
 * embedim: decides dimension of token vectors and value vector, i.e.,
 
 | concat | vdim |
