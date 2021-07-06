@@ -115,8 +115,7 @@ def multi_head_attention_forward(query: Tensor,
     else:
         raise Exception("Unexpected type of operation over head outputs!")
 
-    '''output transformation'''
-
+    #output transformation
     head_output = linear(head_output, out_proj_weight, out_proj_bias)
 
     if need_weights:
