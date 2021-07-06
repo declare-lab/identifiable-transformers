@@ -77,7 +77,7 @@ def multi_head_attention_forward(query: Tensor,
     v = v.view(tgt_len, bsz * num_heads, head_dim).transpose(0, 1)
 
     #[batch size * num_heads, no of tokens, qdim] x [batch size * num_heads, no of tokens, kdim].T -> [batch size * num_head, no of tokens, no of tokens]
-    attn_output_weights = torch.bmm(q, k.transpose(1, 2))
+    attn_logits = torch.bmm(q, k.transpose(1, 2))
 
     #mask unwanted attentions from pad tokens
     if key_padding_mask != None:
@@ -86,42 +86,43 @@ def multi_head_attention_forward(query: Tensor,
         mask = mask.view(-1,tgt_len,tgt_len)
         mask = (mask*(mask.transpose(1,2))) == 0
         mask = mask.repeat(num_heads,1,1)
-        attn_output_weights = attn_output_weights.masked_fill_(mask, -1e10)
+        attn_logits = attn_logits.masked_fill_(mask, -1e10)
 
-    assert list(attn_output_weights.size()) == [bsz * num_heads, tgt_len, tgt_len]
+    assert list(attn_logits.size()) == [bsz * num_heads, tgt_len, tgt_len]
 
+    #softmax attention logits
     attn_output_weights = softmax(
-        attn_output_weights, dim=-1)
+        attn_logits, dim=-1)
     attn_output_weights = dropout(attn_output_weights, p=dropout_p, training=training)
 
     #[batch size * num_heads, no of tokens, no of tokens] * [batch size * num_heads, no of tokens, vdim].T  -> [batch size * num_heads, no of tokens, vdim]                                                   
-    attn_output = torch.bmm(attn_output_weights, v)
+    head_output = torch.bmm(attn_output_weights, v)
 
-    assert list(attn_output.size()) == [bsz * num_heads, tgt_len, head_dim]
+    assert list(head_output.size()) == [bsz * num_heads, tgt_len, head_dim]
 
     if concat_head_output == True:
         #concat head outputs
         assert head_dim == embed_dim // num_heads
-        attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, head_dim * num_heads)
+        head_output = head_output.transpose(0, 1).contiguous().view(tgt_len, bsz, head_dim * num_heads)
 
     elif concat_head_output == False:
         #add head outputs
         assert head_dim == embed_dim
-        attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, head_dim * num_heads)
-        attn_output = attn_output.view(tgt_len, bsz, head_dim, num_heads)
-        attn_output = reduce(torch.add,[attn_output[:,:,:,i] for i in range(attn_output.size(3))])#torch.sum(attn_output, dim=-1)
+        head_output = head_output.transpose(0, 1).contiguous().view(tgt_len, bsz, head_dim * num_heads)
+        head_output = head_output.view(tgt_len, bsz, head_dim, num_heads)
+        head_output = reduce(torch.add,[head_output[:,:,:,i] for i in range(head_output.size(3))])#torch.sum(attn_output, dim=-1)
     
     else:
         raise Exception("Unexpected type of operation over head outputs!")
 
     '''output transformation'''
 
-    attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
+    head_output = linear(head_output, out_proj_weight, out_proj_bias)
 
     if need_weights:
         # average attention weights over heads
         attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, tgt_len)
-        return attn_output, attn_output_weights.sum(dim=1) / num_heads
+        return head_output, attn_output_weights.sum(dim=1) / num_heads
     else:
-        return attn_output, None
+        return head_output, None
 
