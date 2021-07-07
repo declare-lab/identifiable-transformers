@@ -80,7 +80,7 @@ def multi_head_attention_forward(query: Tensor,
     attn_logits = torch.bmm(q, k.transpose(1, 2))
 
     #mask unwanted attentions from pad tokens
-    if key_padding_mask == None:
+    if key_padding_mask != None:
         mask = key_padding_mask
         mask = mask.repeat(1,tgt_len)
         mask = mask.view(-1,tgt_len,tgt_len)
