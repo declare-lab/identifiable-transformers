@@ -97,13 +97,11 @@ class TransformerEncoderLayer(nn.TransformerEncoderLayer):
         self.norm2 = nn.LayerNorm(d_model)
         #
     def forward(self, src, mask, return_attn_weights=False):
-        src, attn_weights = self.self_attn(query=src, key=src, value=src, key_padding_mask=mask, need_weights=return_attn_weights)
-        src = src + self.dropout(src)   #Currently all the dropouts happen with the same probability
+        src1, attn_weights = self.self_attn(query=src, key=src, value=src, key_padding_mask=mask, need_weights=return_attn_weights)
+        src = src + self.dropout(src1)   #Currently all the dropouts happen with the same probability
         src = self.norm1(src)
-        src = self.activation(self.linear1(src))
-        src = self.dropout(src)
-        src = self.linear2(src)
-        src = src + self.dropout(src)
+        src1 = self.linear2(self.dropout(self.activation(self.linear1(src))))
+        src = src + self.dropout(src1)
         src = self.norm2(src)
         return src, attn_weights
 
