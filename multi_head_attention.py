@@ -84,7 +84,7 @@ def multi_head_attention_forward(query: Tensor,
         mask = key_padding_mask
         mask = mask.repeat(1,tgt_len)
         mask = mask.view(-1,tgt_len,tgt_len)
-        mask = (mask*(mask.transpose(1,2))) == 0
+        mask = (mask*(mask.transpose(1,2))) == 1
         mask = mask.repeat(num_heads,1,1)
         attn_logits = attn_logits.masked_fill_(mask, -1e10)
 
