@@ -91,8 +91,7 @@ def multi_head_attention_forward(query: Tensor,
     assert list(attn_logits.size()) == [bsz * num_heads, tgt_len, tgt_len]
 
     #softmax attention logits
-    attn_output_weights = softmax(
-        attn_logits, dim=-1)
+    attn_output_weights = softmax(attn_logits, dim=-1)
     attn_output_weights = dropout(attn_output_weights, p=dropout_p, training=training)
 
     #[batch size * num_heads, no of tokens, no of tokens] * [batch size * num_heads, no of tokens, vdim].T  -> [batch size * num_heads, no of tokens, vdim]                                                   
