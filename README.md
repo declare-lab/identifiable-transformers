@@ -60,16 +60,17 @@ declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 #### Tweak classifier parameters
 * batch: training batch size (default = 64).
 * nhead: number of attention heads (default = 4).
-* concat: (True: concatenate / False: addition) of attention head output (default = True).
 * epochs: number training epochs (default = 10).
 * lr: learning rate (default = 0.001).
+* dropout: dropout regularization parameter (default = 0.1).
 * vocab_size: set threshold on vocabular size (default = 100000).
 * max_text_len: trim the text longer than this value (default = 512).
 * test_frac: only for user specified datasets, fraction of test set from the specified data set (default = 0.3).
 * valid_frac: fraction of training samples kept aside for model development (default = 0.3).
 * kdim: dimensions of key (and query) vector (default = 16).
-* pos_emb: True if positional embedding is needed (default = False).
-* dropout: dropout regularization parameter (default = 0.1).
+* add_heads: mention if replace concatenation with addition of multi-head outputs (default = False).
+* pos_emb: mention if need positional embedding (default = False).
+* return_attn: mention if attention tensors are to be returned from the model.
 * embedim: decides dimension of token vectors and value vector, i.e.,
 
 | concat | vdim |
