@@ -20,7 +20,6 @@ parser = argparse.ArgumentParser(description='Short sample app')
 parser.add_argument('-dataset', action="store", type=str, default="ag_news")
 parser.add_argument('-kdim', action="store", type=int, default=16)
 parser.add_argument('-nhead', action="store", type=int, default=4)
-parser.add_argument('-concat', action="store", type=bool, default=True)
 parser.add_argument('-embedim', action="store", type=int, default=32)
 parser.add_argument('-batch', action="store", type=int, default=64)
 parser.add_argument('-epochs', action="store", type=int, default=10)
@@ -29,13 +28,13 @@ parser.add_argument('-dropout', action="store", type=float, default=0.1)
 parser.add_argument('-vocab_size', action="store", type=int, default=100000)
 parser.add_argument('-max_text_len', action="store", type=int, default=512)
 parser.add_argument('-valid_frac', action="store", type=float, default=0.3)
-parser.add_argument('-pos_emb', action="store", type=bool, default=False)
-
+parser.add_argument('-add_heads', action="store_true", default=False)
+parser.add_argument('-pos_emb', action="store_true", default=False)
+parser.add_argument('-return_attn', action="store_true", default=False)
 
 config = parser.parse_args()
 print("\n\n->Configurations are:")
 [print(k,": ",v) for (k,v) in vars(config).items()]
-
 
 #GPU or CPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -48,7 +47,7 @@ else:
 BATCH_SIZE = config.batch
 N_HEAD = config.nhead
 KDIM = config.kdim
-CONCAT_HEADS = config.concat
+CONCAT_HEADS = not config.add_heads
 EMBEDDING_DIM = config.embedim
 
 if CONCAT_HEADS:
@@ -204,18 +203,21 @@ OUTPUT_DIM = len(OUTPUT_LABELS)
 
 POS_EMB = config.pos_emb
 
+RETURN_ATTN = config.return_attn
+
 print("\nModel configuration::\n \
         BATCH_SIZE: {}\n \
         N_HEAD: {}\n \
-        CONCAT_HEADS: {}\n \
         KDIM: {}\n \
         VDIM: {}\n \
         EMBEDDING_DIM: {}\n \
         MAX_LEN: {}\n \
         VOCAB_LEN: {}\n \
+        DROPOUT:{}\n \
+        CONCAT_HEADS: {}\n \
         POS_EMB: {}\n \
-        DROPOUT:{}\n\n" \
-        .format(BATCH_SIZE, N_HEAD, CONCAT_HEADS, KDIM, VDIM, EMBEDDING_DIM, MAX_LEN, max_vocab_size, POS_EMB, DROPOUT)
+        Return Attentions: {}\n\n"
+        .format(BATCH_SIZE, N_HEAD, KDIM, VDIM, EMBEDDING_DIM, MAX_LEN, max_vocab_size, DROPOUT, POS_EMB, CONCAT_HEADS, RETURN_ATTN)
         )
 
 PAD_IDX = vocab.stoi['<pad>']   #PAD_IDX=0
@@ -239,7 +241,7 @@ model = M.Transformer(
             pos_emb = POS_EMB,
             device = device,
             pad_id = PAD_IDX,
-            return_attn_weights=False
+            return_attn_weights=RETURN_ATTN
             )
 
 model = model.to(device)
