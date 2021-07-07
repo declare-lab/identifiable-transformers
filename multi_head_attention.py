@@ -23,7 +23,7 @@ def multi_head_attention_forward(query: Tensor,
                                  out_proj_bias: Tensor,
                                  training: bool = True,
                                  key_padding_mask: Optional[Tensor] = None,
-                                 need_weights: bool = True,
+                                 need_weights: bool = False,
                                  q_proj_weight: Optional[Tensor] = None,
                                  k_proj_weight: Optional[Tensor] = None,
                                  v_proj_weight: Optional[Tensor] = None,
@@ -119,9 +119,8 @@ def multi_head_attention_forward(query: Tensor,
     head_output = linear(head_output, out_proj_weight, out_proj_bias)
 
     if need_weights:
-        # average attention weights over heads
         attn_output_weights = attn_output_weights.view(bsz, num_heads, tgt_len, tgt_len)
-        return head_output, attn_output_weights.sum(dim=1) / num_heads
+        return head_output, attn_output_weights
     else:
         return head_output, None
 

@@ -149,7 +149,7 @@ max_vocab_size = config.vocab_size
 vocab = torchtext.vocab.Vocab(counter, max_size=max_vocab_size, specials=('<pad>', '<unk>', '<cls>', '<sep>'), specials_first=True)
 
 # example: text_pipeline('here is the an example') --> [0, 22, 3, 31, 0]
-tokenize_clip_pipeline = lambda sentence: [vocab[word] for word in tokenizer(sentence)][:MAX_LEN]
+tokenize_clip_pipeline = lambda sentence: [vocab[word] for word in tokenizer(sentence)][:MAX_LEN-2]
 
 # special token append
 special_token_pipeline = lambda token_list: [vocab.stoi['<cls>']] + token_list + [vocab.stoi['<sep>']]
