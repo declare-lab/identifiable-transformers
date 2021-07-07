@@ -96,8 +96,8 @@ class TransformerEncoderLayer(nn.TransformerEncoderLayer):
         self.linear2 = nn.Linear(dim_feedforward, d_model, bias=True)
         self.norm2 = nn.LayerNorm(d_model)
         #
-    def forward(self, src, mask):
-        src = self.self_attn(query=src, key=src, value=src, key_padding_mask=mask)[0]
+    def forward(self, src, mask, return_attn_weights=False):
+        src, attn_weights = self.self_attn(query=src, key=src, value=src, key_padding_mask=mask, need_weights=return_attn_weights)
         src = src + self.dropout(src)   #Currently all the dropouts happen with the same probability
         src = self.norm1(src)
         src = self.activation(self.linear1(src))
@@ -105,12 +105,12 @@ class TransformerEncoderLayer(nn.TransformerEncoderLayer):
         src = self.linear2(src)
         src = src + self.dropout(src)
         src = self.norm2(src)
-        return src
+        return src, attn_weights
 
 
 class Transformer(nn.Module):
     def __init__(self, vocab_size, embedding_dim, n_head, concat_heads, kdim, vdim, max_len, dim_feedforward, output_dim, 
-                dropout, device, pos_emb, pad_id):
+                dropout, device, pos_emb, pad_id, return_attn_weights=False):
         super().__init__()
 
         #device cpu/gpu
@@ -140,6 +140,8 @@ class Transformer(nn.Module):
             self.max_len = max_len
             self.positional_encoding = nn.Embedding(max_len, embedding_dim)
 
+        #flag to return attention weights
+        self.return_attn_weights = return_attn_weights
 
     def forward(self, mask, text):
 
@@ -157,11 +159,11 @@ class Transformer(nn.Module):
             embedded = embedded + pos_encode.transpose(0,1).to(self.device)
 
         #[max_len x batch x embedding] --> [max_len x batch x embedding]
-        hidden = self.encoder_layer(mask=mask, src=embedded)
+        hidden, attn_weights = self.encoder_layer(mask=mask, src=embedded, return_attn_weights=self.return_attn_weights)
         
         #feed-forward classification layer
         out = F.softmax(self.fc(hidden[0,:,:]), dim=-1)
         
         #taking first token vector at output
-        return out
+        return out, attn_weights
 

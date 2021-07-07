@@ -103,14 +103,14 @@ def multi_head_attention_forward(query: Tensor,
     if concat_head_output == True:
         #concat head outputs
         assert head_dim == embed_dim // num_heads
-        head_output = head_output.transpose(0, 1).contiguous().view(tgt_len, bsz, head_dim * num_heads)
+        head_output = head_output.transpose(0, 1).contiguous().view(tgt_len, bsz, num_heads * head_dim)
 
     elif concat_head_output == False:
         #add head outputs
         assert head_dim == embed_dim
-        head_output = head_output.transpose(0, 1).contiguous().view(tgt_len, bsz, head_dim * num_heads)
+        head_output = head_output.transpose(0, 1).contiguous().view(tgt_len, bsz, num_heads * head_dim)
         head_output = head_output.view(tgt_len, bsz, head_dim, num_heads)
-        head_output = reduce(torch.add,[head_output[:,:,:,i] for i in range(head_output.size(3))])#torch.sum(attn_output, dim=-1)
+        head_output = reduce(torch.add,[head_output[:,:,:,i] for i in range(head_output.size(3))])
     
     else:
         raise Exception("Unexpected type of operation over head outputs!")

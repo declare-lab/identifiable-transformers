@@ -238,7 +238,8 @@ model = M.Transformer(
             dropout=DROPOUT,
             pos_emb = POS_EMB,
             device = device,
-            pad_id = PAD_IDX
+            pad_id = PAD_IDX,
+            return_attn_weights=False
             )
 
 model = model.to(device)
@@ -261,7 +262,7 @@ def train(dataloader):
         optimizer.zero_grad()
 
         #feed inputs to the model
-        predited_label = model(mask, text)
+        predited_label, attn_weights = model(mask, text)
 
         #calculate the loss
         loss = criterion(predited_label, label)
@@ -295,7 +296,7 @@ def evaluate(dataloader):
         for (label, mask, text) in dataloader:
 
             #feed input to the model
-            predited_label = model(mask, text)
+            predited_label, attn_weights = model(mask, text)
 
             #compute loss
             loss = criterion(predited_label, label)
