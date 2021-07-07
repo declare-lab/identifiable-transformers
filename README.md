@@ -68,8 +68,8 @@ declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 * test_frac: only for user specified datasets, fraction of test set from the specified data set (default = 0.3).
 * valid_frac: fraction of training samples kept aside for model development (default = 0.3).
 * kdim: dimensions of key (and query) vector (default = 16).
-* add_heads: mention if replace concatenation with addition of multi-head outputs (default = False).
-* pos_emb: mention if need positional embedding (default = False).
+* add_heads: mention if replace concatenation with addition of multi-head outputs.
+* pos_emb: mention if need positional embedding.
 * return_attn: mention if attention tensors are to be returned from the model.
 * embedim: decides dimension of token vectors and value vector, i.e.,
 
