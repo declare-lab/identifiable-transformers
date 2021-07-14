@@ -15,7 +15,7 @@ import pandas as pd
     user-specifications
 '''
 import argparse
-parser = argparse.ArgumentParser(description='Short sample app')
+parser = argparse.ArgumentParser(description='identifiable transformer')
 
 parser.add_argument('-dataset', action="store", type=str, default="ag_news")
 parser.add_argument('-kdim', action="store", type=int, default=16)
