@@ -42,16 +42,16 @@ should be two columns, header of the column with labels is "label" and text is "
 ### In house datasets
 BTW, you can try to run on Torchtext provided [datasets](https://pytorch.org/text/stable/datasets.html#id5) for classification. For AG_NEWS dataset,  
 ```console
-declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
+declare@lab:~$ python text_classifier.py -kdim 64 -dataset ag_news
 ```
 For quick experiments on variety of text classification datasets, replace _ag_news_ with _imdb_ for IMDb, _sogou_ for SogouNews, _yelp_p_ for YelpReviewPolarity
 , _yelp_f_ for YelpReviewFull, _amazon_p_ for AmazonReviewPolarity, _amazon_f_ for AmazonReviewFull, _yahoo_ for YahooAnswers, _dbpedia_ for DBpedia.
 
 #### Want to customize it for more identifiability?
-Keep low k-dim and/or switch head addition by concat = False. Feel free to analyze attention weights for inputs with lengths up to embedding dim that is specified by embedim arguments while running the command below. 
+Keep low k-dim and/or switch head addition by using the flag _add_heads_. Feel free to analyze attention weights for inputs with lengths up to embedding dim that is specified by embedim arguments while running the command below. 
 
 ```console
-declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news -embedim 256
+declare@lab:~$ python text_classifier.py -kdim 16 -add_heads -dataset ag_news -embedim 256
 ```
 ***Note***: 
 * Lower k-dim may/may not impact the classification accuracy, please keep the possible trade-off in the bucket during experiments.
@@ -73,10 +73,10 @@ declare@lab:~$ python text_classifier.py -kdim 16 -concat False -dataset ag_news
 * return_attn: mention if attention tensors are to be returned from the model.
 * embedim: decides dimension of token vectors and value vector, i.e.,
 
-| concat | vdim |
+| add_heads | vdim |
 |-------|-----|
-| True  | <img src="https://latex.codecogs.com/svg.latex?\small&space;\frac{\text{embedim}}{\text{nhead}}" title="\small \frac{\text{embedim}}{\text{nhead}}" />|
-| False  | embedim |
+| False  | <img src="https://latex.codecogs.com/svg.latex?\small&space;\frac{\text{embedim}}{\text{nhead}}" title="\small \frac{\text{embedim}}{\text{nhead}}" />|
+| True  | embedim |
 
 ## Citation
 
