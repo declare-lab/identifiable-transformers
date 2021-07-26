@@ -217,7 +217,7 @@ print("\nModel configuration::\n \
         CONCAT_HEADS: {}\n \
         POS_EMB: {}\n \
         Return Attentions: {}\n\n"
-        .format(BATCH_SIZE, N_HEAD, KDIM, VDIM, EMBEDDING_DIM, MAX_LEN, max_vocab_size, DROPOUT, POS_EMB, CONCAT_HEADS, RETURN_ATTN)
+        .format(BATCH_SIZE, N_HEAD, KDIM, VDIM, EMBEDDING_DIM, MAX_LEN, max_vocab_size, DROPOUT, CONCAT_HEADS, POS_EMB, RETURN_ATTN)
         )
 
 PAD_IDX = vocab.stoi['<pad>']   #PAD_IDX=0
