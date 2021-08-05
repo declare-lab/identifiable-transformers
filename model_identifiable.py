@@ -160,7 +160,7 @@ class Transformer(nn.Module):
         hidden, attn_weights = self.encoder_layer(mask=mask, src=embedded, return_attn_weights=self.return_attn_weights)
         
         #feed-forward classification layer
-        out = F.softmax(self.fc(hidden[0,:,:]), dim=-1)
+        out = self.fc(hidden[0,:,:])
         
         #taking first token vector at output
         return out, attn_weights

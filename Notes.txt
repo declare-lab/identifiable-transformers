@@ -1,0 +1,7 @@
+#
+1) It seems there is a sweet spot where the performance is best. The spot depends on the architecture and data. Too low batch size introduces a lot of noise while too high "might" fail to generalize well.
+
+	-Can we push that sweet spot higher?
+
+	-Can we push that sweet spot lower?
+
