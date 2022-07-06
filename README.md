@@ -27,7 +27,7 @@ _As shown in our work (experimentally and theoretically)- for a given input X, a
 
 ### How to run the classifier?
 ```console
-declare@lab:~$ python text_classifier.py --dataset data.csv
+declare@lab:~$ python text_classifier.py -dataset data.csv
 ```
 ***Note***: Feel free to replace _data.csv_ with your choice of text classification problem, be it sentiment, news topic, reviews, etc.
 
@@ -42,7 +42,7 @@ should be two columns, header of the column with labels is "label" and text is "
 ### In house datasets
 BTW, you can try to run on Torchtext provided [datasets](https://pytorch.org/text/stable/datasets.html#id5) for classification. For AG_NEWS dataset,  
 ```console
-declare@lab:~$ python text_classifier.py --kdim 64 --dataset ag_news
+declare@lab:~$ python text_classifier.py -kdim 64 -dataset ag_news
 ```
 For quick experiments on variety of text classification datasets, replace _ag_news_ with _imdb_ for IMDb, _sogou_ for SogouNews, _yelp_p_ for YelpReviewPolarity
 , _yelp_f_ for YelpReviewFull, _amazon_p_ for AmazonReviewPolarity, _amazon_f_ for AmazonReviewFull, _yahoo_ for YahooAnswers, _dbpedia_ for DBpedia.
@@ -51,7 +51,7 @@ For quick experiments on variety of text classification datasets, replace _ag_ne
 Keep low k-dim and/or switch head addition by using the flag _add_heads_. Feel free to analyze attention weights for inputs with lengths up to embedding dim that is specified by embedim arguments while running the command below. 
 
 ```console
-declare@lab:~$ python text_classifier.py --kdim 16 --add_heads --dataset ag_news --embedim 256
+declare@lab:~$ python text_classifier.py -kdim 16 -add_heads -dataset ag_news -embedim 256
 ```
 ***Note***: 
 * Lower k-dim may/may not impact the classification accuracy, please keep the possible trade-off in the bucket during experiments.
